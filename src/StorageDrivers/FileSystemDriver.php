@@ -37,9 +37,7 @@ class FileSystemDriver extends AbstractDriver implements PublishesStaticAssets
         foreach ($library->allFiles() as $file) {
             $sourcePath = $library->filePath($file);
             if (file_exists($sourcePath)) {
-                $currentMTime = filemtime($sourcePath);
                 $destination = $staticPath.'/'.$file;
-
                 if ($this->fileIsPublished($library, $file)) {
                     if (! $force && ! $this->fileIsStale($library, $file)) {
                         break;
@@ -53,7 +51,7 @@ class FileSystemDriver extends AbstractDriver implements PublishesStaticAssets
                 }
 
                 File::copy($sourcePath, $destination);
-                $this->cacheManifestItem($library, $file, $currentMTime);
+                $this->cacheManifestItem($library, $file);
             }
         }
 
@@ -85,8 +83,8 @@ class FileSystemDriver extends AbstractDriver implements PublishesStaticAssets
     {
         $sourcePath = $library->filePath($file);
         $publishedPath = public_path($this->getOption('publish_path', 'static').'/'.$library->getName()).'/'.$file;
-        $savedCache = $this->getManifestCacheTime($library, $file, false);
+        $savedCache = $this->getManifestCacheKey($library, $file, false);
 
-        return $this->fileIsPublished($library, $file) && $savedCache != $this->makeCacheKey($library, $file);
+        return $this->fileIsPublished($library, $file) && $savedCache != $this->makeCacheKey($file, $library);
     }
 }

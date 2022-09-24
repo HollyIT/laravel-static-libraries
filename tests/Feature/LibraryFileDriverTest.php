@@ -39,16 +39,15 @@ it('overwrites modified files on publish', function () {
     ]));
     $this->artisan('static-libraries:publish')->assertSuccessful();
     $this->assertFileExists(public_path('static/test/css/test.css'));
-    $mtime = filemtime(public_path('static/test/css/test.css'));
+    $original = file_get_contents(public_path('static/test/css/test.css'));
     $this->assertFileExists(public_path('static/test/js/test.js'));
     $library = $this->libraries()->get('test');
     $path = $library->filePath($library->assets->first()->getFile());
     unlink($path);
-    sleep(1); // This is dirty but need mtime to update.
-    file_put_contents($path, 'test.css');
+    file_put_contents($path, 'test123.css');
     $this->artisan('static-libraries:publish')->assertSuccessful();
-    $newMtime = filemtime(public_path('static/test/css/test.css'));
-    $this->assertNotEquals($mtime, $newMtime);
+    $newContent = file_get_contents(public_path('static/test/css/test.css'));
+    $this->assertNotEquals($original, $newContent);
 });
 
 it('unpublishes libraries from the public static directory', function () {

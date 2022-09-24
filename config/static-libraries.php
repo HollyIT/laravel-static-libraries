@@ -4,7 +4,7 @@ use HollyIT\StaticLibraries\StorageDrivers\DevDriver;
 use HollyIT\StaticLibraries\StorageDrivers\FileSystemDriver;
 
 return [
-    'driver' => env('STATIC_ASSETS_DRIVER', 'filesystem'),
+    'driver' => env('STATIC_LIBRARIES_DRIVER', 'filesystem'),
     'server_prefix' => 'static',
     'drivers' => [
         'filesystem' => [

@@ -19,13 +19,13 @@ trait DriverOffersCacheBusting
 
     protected function cacheBust(Library $library, string $url, $file): string
     {
-        $time = $this->getManifestCacheTime($library, $file);
-        if (! $time) {
+        $key = $this->getManifestCacheKey($library, $file);
+        if (! $key) {
             return $url;
         }
-
+        echo "$key ";
         return $url.(str_contains($url, '?') ? '&' : '?').
-            $this->urlCacheKey.'='.substr(md5($time), 0, 12);
+            $this->urlCacheKey.'='.substr(md5($key), 0, 12);
     }
 
     public function getLibraryManifest(Library $library): ?array
@@ -52,12 +52,13 @@ trait DriverOffersCacheBusting
         return $library[$file] ?? null;
     }
 
-    public function cacheManifestItem(Library $library, string $file, $mTime): void
+    public function cacheManifestItem(Library $library, string $file, $cacheKey = null): void
     {
+        $cacheKey = $cacheKey ?? $this->makeCacheKey($file, $library);
         if (! $this->getLibraryManifest($library)) {
             $this->manifest[$library->getName()] = [];
         }
-        $this->manifest[$library->getName()][$file] = $mTime;
+        $this->manifest[$library->getName()][$file] = $cacheKey;
         $this->persistManifestCache();
     }
 
@@ -69,20 +70,19 @@ trait DriverOffersCacheBusting
         }
     }
 
-    public function getManifestCacheTime(Library $library, string $file, bool $add = true): string|null
+    public function getManifestCacheKey(Library $library, string $file, bool $add = true): string|null
     {
         if ($add && ! $this->getManifestFile($library, $file)) {
-            $this->cacheManifestItem($library, $file, $this->makeCacheKey($library, $file));
+            $this->cacheManifestItem($library, $file, $this->makeCacheKey($file, $library));
         }
 
         return $this->getManifestFile($library, $file);
     }
 
-    public function makeCacheKey(Library $library, string $file): bool|int
+    public function makeCacheKey(string $path, ?Library $library = null): bool|string
     {
-        $absPath = $library->filePath($file);
-
-        return File::exists($absPath) ? filemtime($absPath) : 0;
+        $absPath = $library ? $library->filePath($path) : $path;
+        return File::exists($absPath) ? hash_file('md5', $absPath) : 0;
     }
 
     protected function persistManifestCache(): void
