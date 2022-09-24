@@ -1,6 +1,6 @@
 # Introduction
 
-(please not that this documentation is a work in progress.)
+(please note that this documentation is a work in progress.)
 
 Static Libraries are a way to corral all your various static assets used on your webpages, such as various stylesheets
 and javascript libraries. They provide a mechanism to easily include multiple items, without needing to remember
