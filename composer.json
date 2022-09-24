@@ -1,0 +1,63 @@
+{
+    "name": "hollyit/laravel-static-libraries",
+    "description": "Advanced management for static assets like javascript files and stylesheets",
+    "license": "MIT",
+    "keywords": [
+        "hollyiy",
+        "library",
+        "javascript",
+        "stylesheet",
+        "laravel"
+    ],
+    "authors": [
+        {
+            "name": "Jamie Holly",
+            "email": "jamie@hollyit.net",
+            "homepage": "https://spatie.be",
+            "role": "Developer"
+        }
+    ],
+    "homepage": "https://github.com/hollyit/laravel-static-libraries",
+    "require": {
+        "php": "^8.0",
+        "ext-json": "*",
+        "illuminate/contracts": "^8.6 || ^9.0"
+    },
+    "require-dev": {
+        "laravel/pint": "^1.2",
+        "nunomaduro/larastan": "^2.2",
+        "orchestra/testbench": "^6.23 || ^7.0",
+        "pestphp/pest": "^1.20"
+    },
+    "minimum-stability": "dev",
+    "prefer-stable": true,
+    "autoload": {
+        "psr-4": {
+            "HollyIT\\StaticLibraries\\": "src"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "HollyIT\\StaticLibraries\\Test\\": "tests"
+        }
+    },
+    "config": {
+        "sort-packages": true,
+        "allow-plugins": {
+            "pestphp/pest-plugin": true
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "HollyIT\\StaticLibraries\\StaticLibrariesServiceProvider"
+            ],
+            "aliases": {
+                "StaticLibraries": "HollyIT\\StaticLibraries\\Facades\\StaticLibraries"
+            }
+        }
+    },
+    "scripts": {
+        "test": "vendor/bin/pest"
+    }
+}

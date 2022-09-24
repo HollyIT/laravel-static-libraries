@@ -1,0 +1,17 @@
+includes:
+    - ./vendor/nunomaduro/larastan/extension.neon
+
+parameters:
+    paths:
+        - src/
+    level: 5
+    tmpDir: build/phpstan
+    checkOctaneCompatibility: true
+    ignoreErrors:
+        -
+            message: '#getLibrariesFromInput\(\)#'
+            path: src/Commands
+
+        -
+            message: '#view of function view expects view-string\|null#'
+            path: src/
