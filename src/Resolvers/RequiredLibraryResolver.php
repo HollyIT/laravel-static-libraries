@@ -2,7 +2,9 @@
 
 namespace HollyIT\StaticLibraries\Resolvers;
 
+use HollyIT\StaticLibraries\Events\StaticLibrariesResolvedEvent;
 use HollyIT\StaticLibraries\LibrariesManager;
+use Illuminate\Support\Collection;
 
 class RequiredLibraryResolver
 {
@@ -10,8 +12,10 @@ class RequiredLibraryResolver
 
     protected array $required;
 
-    /** @var array | ResolvedLibrary[] */
-    protected array $resolvedLibraries = [];
+    /**
+     * @var Collection | ResolvedLibrary[]
+     */
+    public Collection|array $resolvedLibraries;
 
     protected bool $isOrdered = false;
 
@@ -21,6 +25,7 @@ class RequiredLibraryResolver
     {
         $this->manager = $manager;
         $this->required = $required;
+        $this->resolvedLibraries = collect([]);
         $this->resolve();
     }
 
@@ -31,7 +36,7 @@ class RequiredLibraryResolver
         $this->autoInjects = [];
         foreach ($this->manager->all() as $library) {
             foreach ($library->getRequiredWith() as $libraryName) {
-                if (! isset($this->autoInjects[$libraryName])) {
+                if (!isset($this->autoInjects[$libraryName])) {
                     $this->autoInjects[$libraryName] = [];
                 }
                 $this->autoInjects[$libraryName][] = $library->getName();
@@ -39,7 +44,7 @@ class RequiredLibraryResolver
         }
 
         foreach ($this->required as $libraryName) {
-            throw_if(! $this->manager->has($libraryName), new \Exception('Could not locate required static library '.$libraryName));
+            throw_if(!$this->manager->has($libraryName), new \Exception('Could not locate required static library ' . $libraryName));
             $this->resolveDependencies($libraryName);
         }
 
@@ -48,20 +53,22 @@ class RequiredLibraryResolver
                 $positionRule->handle($resolvedLibrary, $this->resolvedLibraries);
             }
         }
+
+        event(new StaticLibrariesResolvedEvent($this));
     }
 
     protected function resolveDependencies(string $libraryName): void
     {
-        throw_if(! $this->manager->has($libraryName), sprintf('Required static library %s could not be located', $libraryName));
+        throw_if(!$this->manager->has($libraryName), sprintf('Required static library %s could not be located', $libraryName));
         $library = $this->manager->get($libraryName);
         foreach ($library->getDependencies() as $dependencyName) {
             throw_if($dependencyName === $library, sprintf('Library %s is attempting to require itself.', $libraryName));
-            if (! isset($this->resolvedLibraries[$dependencyName])) {
+            if (!isset($this->resolvedLibraries[$dependencyName])) {
                 $this->resolveDependencies($dependencyName);
             }
         }
 
-        if (! isset($this->resolvedLibraries[$libraryName])) {
+        if (!isset($this->resolvedLibraries[$libraryName])) {
             $this->resolvedLibraries[$libraryName] = new ResolvedLibrary($this, $library, count($this->resolvedLibraries) * 10);
             if (isset($this->autoInjects[$libraryName])) {
                 foreach ($this->autoInjects[$libraryName] as $injectName) {
@@ -80,21 +87,25 @@ class RequiredLibraryResolver
 
     protected function order(): void
     {
-        uasort($this->resolvedLibraries, fn (ResolvedLibrary $a, ResolvedLibrary $b) => $a->getWeight() < $b->getWeight() ? -1 : 1);
+        $this->resolvedLibraries = $this->resolvedLibraries->sort(fn(ResolvedLibrary $a, ResolvedLibrary $b) => $a->getWeight() < $b->getWeight() ? -1 : 1);
         $this->isOrdered = true;
     }
 
     public function toArray(): array
     {
-        if (! $this->isOrdered) {
+        if (!$this->isOrdered) {
             $this->order();
         }
 
-        return $this->resolvedLibraries;
+        return $this->resolvedLibraries->toArray();
     }
 
     public function getLibraries(): \Illuminate\Support\Collection
     {
-        return collect($this->toArray())->map(fn (ResolvedLibrary $library) => $library->library);
+        if (!$this->isOrdered) {
+            $this->order();
+        }
+
+        return $this->resolvedLibraries->map(fn(ResolvedLibrary $library) => $library->library);
     }
 }

@@ -14,7 +14,7 @@ class ListStaticAssetsCommand extends Command
 
     protected $signature = 'static-libraries:list';
 
-    protected $description = 'Copies static files to a location for serving directly from a web server, based upon your storage driver.';
+    protected $description = 'Gives you a detailed list of all defined static libraries and their status.';
 
     protected LibrariesManager $librariesManager;
 
@@ -44,15 +44,14 @@ class ListStaticAssetsCommand extends Command
             if (! empty($library['depends_on'])) {
                 $this->outputInfo('Depends on', $library['depends_on']);
             }
-            $this->outputInfo('Base path:', $library['base_path']);
-            $this->components->twoColumnDetail('  ok');
-            $this->components->twoColumnDetail('  <fg=green;options=bold>Base path</>');
-            if (! empty($library['required_before'])) {
-                $this->outputInfo('Is required before', $library['required_before']);
+
+            $this->components->twoColumnDetail('  <fg=green;options=bold>Base path</>', realpath($library['base_path']));
+            if (! empty($library['required_with'])) {
+                $this->outputInfo('Is required with', $library['required_with']);
             }
 
-            if (! empty($library['required_after'])) {
-                $this->outputInfo('Is required after', $library['depends_on']);
+            if (! empty($library['positioning'])) {
+                $this->outputInfo('Is positioned ' . $library['positioning']['position'], $library['positioning']['libraries']);
             }
 
             $this->output->writeln('<fg=green;options=bold>Assets:</>');

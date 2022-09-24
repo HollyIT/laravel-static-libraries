@@ -6,7 +6,7 @@ use HollyIT\StaticLibraries\Contracts\IsScript;
 use HollyIT\StaticLibraries\Contracts\IsStyle;
 use HollyIT\StaticLibraries\Contracts\PublishesStaticAssets;
 use HollyIT\StaticLibraries\Contracts\StaticAssetsDriver;
-use HollyIT\StaticLibraries\Events\PrepareStaticLibraryOrder;
+use HollyIT\StaticLibraries\Events\ResolveStaticLibrariesEvent;
 use HollyIT\StaticLibraries\Events\RegisterStaticLibrariesEvent;
 use HollyIT\StaticLibraries\Resolvers\RequiredLibraryResolver;
 use HollyIT\StaticLibraries\StaticAssets\JsModule;
@@ -53,10 +53,20 @@ class LibrariesManager
         return $this->assetsDriver;
     }
 
-    public function add(Library $library): static
+    public function add(...$libraries): static
     {
-        $this->libraries->put($library->getName(), $library);
-        $library->setLibrariesManager($this);
+        foreach ($libraries as $library) {
+            if (is_array($library)) {
+                foreach ($library as $item) {
+                    $this->add($item);
+                }
+
+            } else {
+                $this->libraries->put($library->getName(), $library);
+                $library->setLibrariesManager($this);
+            }
+        }
+
 
         return $this;
     }
@@ -84,9 +94,9 @@ class LibrariesManager
         foreach ($name as $library) {
             if (is_array($library)) {
                 $this->require(...$library);
-            } elseif (! $this->isRequired($library)) {
-                if (! $this->has($library)) {
-                    throw new RuntimeException('Unknown static library '.$library);
+            } elseif (!$this->isRequired($library)) {
+                if (!$this->has($library)) {
+                    throw new RuntimeException('Unknown static library ' . $library);
                 }
                 $this->ordered = null;
                 $this->required[] = $library;
@@ -121,8 +131,8 @@ class LibrariesManager
      */
     public function getOrdered(): array|Collection|null
     {
-        if (! $this->ordered) {
-            event(new PrepareStaticLibraryOrder($this));
+        if (!$this->ordered) {
+            event(new ResolveStaticLibrariesEvent($this));
             $this->ordered = $this->createResolver()->getLibraries();
         }
 
@@ -134,8 +144,8 @@ class LibrariesManager
         $scripts = [];
         foreach ($this->getOrdered() as $library) {
             $scripts = array_merge($scripts, $library->assets
-                ->filter(fn (StaticAsset $asset) => ($asset instanceof IsScript) && $asset->isInHead() === $inHead)
-                ->map(fn (IsScript|StaticAsset $js) => $js->render())
+                ->filter(fn(StaticAsset $asset) => ($asset instanceof IsScript) && $asset->isInHead() === $inHead)
+                ->map(fn(IsScript|StaticAsset $js) => $js->render())
                 ->toArray()
             );
         }
@@ -148,8 +158,8 @@ class LibrariesManager
         $styles = [];
         foreach ($this->getOrdered() as $library) {
             $styles = array_merge($styles, $library->assets
-                ->filter(fn (StaticAsset $asset) => $asset instanceof IsStyle)
-                ->map(fn (IsStyle|StaticAsset $css) => $css->render())
+                ->filter(fn(StaticAsset $asset) => $asset instanceof IsStyle)
+                ->map(fn(IsStyle|StaticAsset $css) => $css->render())
                 ->toArray()
             );
         }
@@ -205,8 +215,8 @@ class LibrariesManager
         foreach ($this->getOrdered() as $library) {
             /** @var Collection $found */
             $found = $library->assets
-                ->filter(fn (StaticAsset $asset) => $asset instanceof JsModule)
-                ->mapWithKeys(fn (JsModule $module) => [$module->getName() => $module->resolveFileUrl()]);
+                ->filter(fn(StaticAsset $asset) => $asset instanceof JsModule)
+                ->mapWithKeys(fn(JsModule $module) => [$module->getName() => $module->resolveFileUrl()]);
 
             if ($found->isNotEmpty()) {
                 $map = array_merge($map, $found->toArray());
@@ -229,7 +239,7 @@ class LibrariesManager
                 if ($asset instanceof StaticFile) {
                     $data['file'] = $asset->getFile();
 
-                    if (! $asset->isExternal() && $driver instanceof PublishesStaticAssets) {
+                    if (!$asset->isExternal() && $driver instanceof PublishesStaticAssets) {
                         $data['is_published'] = $driver->fileIsPublished($library, $asset->getFile());
                         $data['is_stale'] = $driver->fileIsStale($library, $asset->getFile());
                     }

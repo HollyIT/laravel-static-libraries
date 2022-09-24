@@ -5,6 +5,7 @@ namespace HollyIT\StaticLibraries\Positioning;
 use Closure;
 use HollyIT\StaticLibraries\Concerns\EvaluatesCallbacks;
 use HollyIT\StaticLibraries\Resolvers\ResolvedLibrary;
+use Illuminate\Support\Collection;
 
 class PositionBefore extends PositioningRule
 {
@@ -39,7 +40,7 @@ class PositionBefore extends PositioningRule
         return $this;
     }
 
-    public function handle(ResolvedLibrary $library, array $required): void
+    public function handle(ResolvedLibrary $library, Collection $required): void
     {
         foreach ($this->libraries as $libraryName) {
             if (isset($required[$libraryName]) && $required[$libraryName]->getWeight() < $library->getWeight()) {

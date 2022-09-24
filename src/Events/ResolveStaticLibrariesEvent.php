@@ -4,7 +4,7 @@ namespace HollyIT\StaticLibraries\Events;
 
 use HollyIT\StaticLibraries\LibrariesManager;
 
-class PrepareStaticLibraryOrder
+class ResolveStaticLibrariesEvent
 {
     public LibrariesManager $manager;
 

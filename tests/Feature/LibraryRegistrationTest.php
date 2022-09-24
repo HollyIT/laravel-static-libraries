@@ -1,6 +1,6 @@
 <?php
 
-use HollyIT\StaticLibraries\Events\PrepareStaticLibraryOrder;
+use HollyIT\StaticLibraries\Events\ResolveStaticLibrariesEvent;
 use HollyIT\StaticLibraries\Events\RegisterStaticLibrariesEvent;
 use HollyIT\StaticLibraries\Test\Support\MakesLibraries;
 use Illuminate\Support\Facades\Config;
@@ -20,14 +20,14 @@ it('throws an exception when requiring an unknown library', function () {
 it('triggers library registration events', function () {
     Event::fake([
         RegisterStaticLibrariesEvent::class,
-        PrepareStaticLibraryOrder::class,
+        ResolveStaticLibrariesEvent::class,
     ]);
 
     $this->libraries()->add(MakesLibraries::basic('test'));
     Event::assertDispatched(RegisterStaticLibrariesEvent::class);
 
     $this->libraries()->getOrdered();
-    Event::assertDispatched(PrepareStaticLibraryOrder::class);
+    Event::assertDispatched(ResolveStaticLibrariesEvent::class);
 });
 
 it('throws an exception when required library is not found', function () {
@@ -40,7 +40,7 @@ it('throws an exception when required library is not found', function () {
 it('can alter libraries', function () {
     $this->libraries()->add(MakesLibraries::basic('test2'));
     $this->libraries()->add(MakesLibraries::basic('test'));
-    Event::listen(PrepareStaticLibraryOrder::class, function (PrepareStaticLibraryOrder $event) {
+    Event::listen(ResolveStaticLibrariesEvent::class, function (ResolveStaticLibrariesEvent $event) {
         $event->manager->get('test2')->requires('test');
     });
 
@@ -50,7 +50,7 @@ it('can alter libraries', function () {
 
 it('can remove a required library', function () {
     $this->libraries()->add(MakesLibraries::basic('test'));
-    Event::listen(PrepareStaticLibraryOrder::class, function (PrepareStaticLibraryOrder $event) {
+    Event::listen(ResolveStaticLibrariesEvent::class, function (ResolveStaticLibrariesEvent $event) {
         $event->manager->removeRequired('test');
     });
 
