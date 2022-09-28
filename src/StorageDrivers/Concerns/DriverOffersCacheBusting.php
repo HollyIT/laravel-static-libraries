@@ -23,7 +23,6 @@ trait DriverOffersCacheBusting
         if (! $key) {
             return $url;
         }
-        echo "$key ";
         return $url.(str_contains($url, '?') ? '&' : '?').
             $this->urlCacheKey.'='.substr(md5($key), 0, 12);
     }
