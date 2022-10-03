@@ -3,7 +3,7 @@
     "description": "Advanced management for static assets like javascript files and stylesheets",
     "license": "MIT",
     "keywords": [
-        "hollyiy",
+        "hollyit",
         "library",
         "javascript",
         "stylesheet",
@@ -13,7 +13,7 @@
         {
             "name": "Jamie Holly",
             "email": "jamie@hollyit.net",
-            "homepage": "https://spatie.be",
+            "homepage": "https://hollyit.net",
             "role": "Developer"
         }
     ],

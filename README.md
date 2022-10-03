@@ -143,6 +143,10 @@ This package uses a concept of drivers to handle publishing and serving your sta
 
 This is the simplest driver. It serves all your local assets via Laravel.
 
+**New in 1.1.0**
+
+You can now specify ->withHotFile(...file path...) onto your library. When using the dev driver, if the hotfile is present it will automatically parse and include that. Currently, this is for Laravel Mix only. Vite will be added in the near future.
+
 ##### File Driver
 
 This driver is what's known as a publishable driver. That means it will copy the various files from their location over to your public_path. If the files aren't found there, then it will fall back to utilizing Laravel to serve the files. This driver also integrates cache busting, based on the hash of the static file.

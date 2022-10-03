@@ -26,6 +26,8 @@ class Library implements Arrayable
 
     protected array $positioningItems = [];
 
+    protected ?string $hotFile = null;
+
     /**
      * @var Collection | JsModule[] | StaticAsset[]
      */
@@ -88,6 +90,26 @@ class Library implements Arrayable
 
         return $this;
     }
+
+    /**
+     * @return string|null
+     */
+    public function getHotFile(): ?string
+    {
+        return $this->hotFile;
+    }
+
+    /**
+     * @param string|null $hotFile
+     * @return Library
+     */
+    public function withHotFile(?string $hotFile): Library
+    {
+        $this->hotFile = $hotFile;
+        return $this;
+    }
+
+
 
     /**
      * Indicates if this library is actually stored in the public_path(). This prevents
